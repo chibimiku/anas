@@ -24,7 +24,7 @@ class MysqlPkg:
         for value in results:
             row = {columns[index][0]:column for index, column in enumerate(value)}
             return_list.append(self._fix_row(row))
-        return results
+        return return_list
 
     def insert_update(self, table_name, in_data, in_data_on_dup = {}):
         self.insert(table_name, in_data, ignore = True)
@@ -50,6 +50,9 @@ class MysqlPkg:
         self._execute("".join(insert_stmt_arr), values_arr)
         
     def update(self, table_name, in_data, cond, cond_data = []):
+        #如果cond_data不是list则先弄成list
+        if (not isinstance(cond_data, list)):
+            cond_data = [cond_data]
         update_str = ''
         tmp = []
         tmp_value_arr = [] 

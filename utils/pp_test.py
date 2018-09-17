@@ -7,9 +7,12 @@ import configparser
 from pyppeteer import launch
 import asyncio
 import json
+import logging
+import time
 from lib import MysqlPkg
 from lib import Cookie
 from lib import Downloader
+from lib import PuppeteerCombo as pc
 
 async def main():
     #初始化db
@@ -29,24 +32,43 @@ async def main():
     #首次使用将会下载
     browser = await launch({"args": ["--no-sandbox"]})
     page = await browser.newPage()
-    url = "https://ark.intel.com/"
     
-    #设置cookies
-    cookies_path = '../data/cookies/'
-    ck = Cookie.Cookie(cookies_path)
-    my_cookie_list = ck.load_cookie(url)
-    for row in my_cookie_list:
-        await page.setCookie(row)
+    fetch_tbl_name = "fetch_list"
+    
+    #获取需要抓取的list
+    fetch_list = db.query("SELECT * FROM " + fetch_tbl_name + " WHERE status=0")
+    
+    for row in fetch_list:
+        print (row)
+        url = row["url"]
+        #设置cookies
+        cookies_path = '../data/cookies/'
+        ck = Cookie.Cookie(cookies_path)
+        my_cookie_list = ck.load_cookie(url)
+        for cookie_row in my_cookie_list:
+            await page.setCookie(cookie_row)
+        #设置cookies完毕
         
-    #设置cookies完毕
-    await page.goto(url)
-    
-    title = await page.title()
-    db.insert("titles", {"url": url, "title": title})
-    
-    new_cookie = await page.cookies()
-    #回写cookies
-    ck.save_cookie(url, new_cookie)
+        try:
+            await page.goto(url)
+            #get weibo image
+            author_name = await pc.get_element_content_by_selector(page, ".weibo-top h3[class*='m-text-cut']")
+            logging.info ("Got user:" + author_name)
+            dl.set_sub_download_dir(author_name)
+            imgs = await pc.get_elements_attr_by_selector(page, ".f-bg-img", "style.backgroundImage")
+            if(len(imgs) > 0):
+                for i in range(0, len(imgs)):
+                    imgs[i] = imgs[i].replace("orj360", "large").replace('url("', "", )[:-2] #去掉
+            print (imgs)
+            for img in imgs:
+                dl.download_image(img)
+            db.update(fetch_tbl_name, {"status": 1, "fetch_timestamp": time.time(), "local_path": dl.get_full_save_path()}, "id=%s", row["id"])
+        except Exception as e:
+            db.update(fetch_tbl_name, {"status": -1, "comment": e}, "id=%s", row["id"])
+            
+        new_cookie = await page.cookies()
+        #回写cookies
+        ck.save_cookie(url, new_cookie)
 
     await browser.close()
     db.close()
