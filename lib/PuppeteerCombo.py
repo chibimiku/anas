@@ -10,6 +10,15 @@ async def get_all_imgs(page, path):
         rs_list.append(await get_element_attr(page, el, "src"))
     return rs_list
 
+#公用操作区
+async def disable_img(page):
+    page.on(''' 'request', request => {
+        if (request.resourceType() === 'image')
+          request.abort();
+        else
+          request.continue();
+      }''');
+    
 #基础操作区
 async def get_elements_attr_by_selector(page, selector, attr):
     ret_list = []

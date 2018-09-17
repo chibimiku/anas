@@ -5,6 +5,8 @@ def mysqlpkg_fastinit(config_path, sector_name = "mysql_localhost"):
     config = configparser.ConfigParser()
     config.read(config_path)
     db_conf = config._sections[sector_name]
+    if("connection_timeout" in db_conf):
+        db_conf["connection_timeout"] = float(db_conf["connection_timeout"]) #处理掉连接timeout这块
     db = MysqlPkg(db_conf)
     return db
 
