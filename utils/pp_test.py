@@ -9,6 +9,7 @@ import asyncio
 import json
 from lib import MysqlPkg
 from lib import Cookie
+from lib import Downloader
 
 async def main():
     #初始化db
@@ -21,6 +22,9 @@ async def main():
     #先查找DB已经存在的数据
     q_rs = db.query("SELECT * FROM titles WHERE 1=1")
     print (q_rs)
+    
+    #配置downloader
+    dl = Downloader.Downloader("../conf/download.conf")
 
     #首次使用将会下载
     browser = await launch({"args": ["--no-sandbox"]})
@@ -41,7 +45,7 @@ async def main():
     db.insert("titles", {"url": url, "title": title})
     
     new_cookie = await page.cookies()
-    #会写cookies
+    #回写cookies
     ck.save_cookie(url, new_cookie)
 
     await browser.close()

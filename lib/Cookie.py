@@ -31,6 +31,13 @@ class Cookie():
             return []
         return my_cookie_list
         
+    def load_cookie_dict(self, url):
+        ret_dict = {}
+        tmp = self.load_cookie(url)
+        for row in tmp:
+            ret_dict[row["name"]] = row["value"]
+        return ret_dict
+        
     def _get_real_cookie_path(self, url):
         parsed_uri = urlparse(url)
         return "".join([self.local_path, parsed_uri.netloc, "_cookie.txt"])
