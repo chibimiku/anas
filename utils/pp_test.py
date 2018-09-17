@@ -16,15 +16,7 @@ from lib import PuppeteerCombo as pc
 
 async def main():
     #初始化db
-    config = configparser.ConfigParser()
-    config.read("../conf/mysql.conf")
-    db_conf = config._sections["mysql_localhost"]
-    print (db_conf)
-    db = MysqlPkg.MysqlPkg(db_conf)
-    
-    #先查找DB已经存在的数据
-    q_rs = db.query("SELECT * FROM titles WHERE 1=1")
-    print (q_rs)
+    db = MysqlPkg.mysqlpkg_fastinit("../conf/mysql.conf")
     
     #配置downloader
     dl = Downloader.Downloader("../conf/download.conf")
@@ -53,6 +45,8 @@ async def main():
             await page.goto(url)
             #get weibo image
             author_name = await pc.get_element_content_by_selector(page, ".weibo-top h3[class*='m-text-cut']")
+            author_id_tmp = await pc.get_element_attr_by_selector(page, ".weibo-top a[class*='m-img-box']", "href")
+            author_id = author_id_tmp.split("/")[-1]
             logging.info ("Got user:" + author_name)
             dl.set_sub_download_dir(author_name)
             imgs = await pc.get_elements_attr_by_selector(page, ".f-bg-img", "style.backgroundImage")
@@ -62,7 +56,7 @@ async def main():
             print (imgs)
             for img in imgs:
                 dl.download_image(img)
-            db.update(fetch_tbl_name, {"status": 1, "fetch_timestamp": time.time(), "local_path": dl.get_full_save_path()}, "id=%s", row["id"])
+            db.update(fetch_tbl_name, {"status": 1, "fetch_timestamp": time.time(), "local_path": dl.get_full_save_path(), "author_name": author_name, "author_id": author_id}, "id=%s", row["id"])
         except Exception as e:
             db.update(fetch_tbl_name, {"status": -1, "comment": e}, "id=%s", row["id"])
             

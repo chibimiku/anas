@@ -1,4 +1,12 @@
 import mysql.connector
+import configparser
+
+def mysqlpkg_fastinit(config_path, sector_name = "mysql_localhost"):
+    config = configparser.ConfigParser()
+    config.read(config_path)
+    db_conf = config._sections[sector_name]
+    db = MysqlPkg(db_conf)
+    return db
 
 class MysqlPkg:
     def __init__(self, config):
@@ -9,15 +17,17 @@ class MysqlPkg:
     def close(self):
         self.cnx.close()
         
-    def fetch_first(self, sql, data = []):
-        self.cursor.execute(sql, data)
+    def fetch_first(self, sql, cond_data = []):
+        cond_data = self._fix_stmt_parm(cond_data)
+        self.cursor.execute(sql, cond_data)
         row = self.cursor.fetchone()
         columns = self.cursor.description
         result_row = {columns[index][0]:column for index, column in enumerate(row)}
         return result_row
         
-    def query(self, sql, data = []):
-        self.cursor.execute(sql, data)
+    def query(self, sql, cond_data = []):
+        cond_data = self._fix_stmt_parm(cond_data)
+        self.cursor.execute(sql, cond_data)
         results = self.cursor.fetchall()
         columns = self.cursor.description
         return_list = []
@@ -51,8 +61,7 @@ class MysqlPkg:
         
     def update(self, table_name, in_data, cond, cond_data = []):
         #如果cond_data不是list则先弄成list
-        if (not isinstance(cond_data, list)):
-            cond_data = [cond_data]
+        cond_data = self._fix_stmt_parm(cond_data)
         update_str = ''
         tmp = []
         tmp_value_arr = [] 
@@ -65,6 +74,11 @@ class MysqlPkg:
         exec_var = tmp_value_arr + cond_data
         exec_result = self._execute(sql, exec_var)
         return exec_result
+        
+    def _fix_stmt_parm(self, cond_data):
+        if (not isinstance(cond_data, list)):
+            cond_data = [cond_data]
+        return cond_data
 
     def insert_id(self):
         return self.cursor.lastrowid
