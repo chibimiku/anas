@@ -1,6 +1,5 @@
 #下载器的类
 import requests
-import grequests
 import logging
 import configparser
 import shutil

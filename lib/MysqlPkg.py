@@ -6,7 +6,7 @@ def mysqlpkg_fastinit(config_path, sector_name = "mysql_localhost"):
     config.read(config_path)
     db_conf = config._sections[sector_name]
     if("connection_timeout" in db_conf):
-        db_conf["connection_timeout"] = float(db_conf["connection_timeout"]) #处理掉连接timeout这块
+        db_conf["connection_timeout"] = int(db_conf["connection_timeout"]) #处理掉连接timeout这块
     db = MysqlPkg(db_conf)
     return db
 
@@ -15,6 +15,7 @@ class MysqlPkg:
         self._config = config
         self.cnx = mysql.connector.connect(**config)
         self.cursor = self.cnx.cursor()
+        self.cnx.autocommit = True
         
     def close(self):
         self.cnx.close()
@@ -67,14 +68,23 @@ class MysqlPkg:
         update_str = ''
         tmp = []
         tmp_value_arr = [] 
+        
+        direct_data = []
         for (k, v) in in_data.items():
             v = str(v)
             tmp.append("=".join([k,'%s']))
             tmp_value_arr.append(v)
-        #sql = 'UPDATE %s SET %s WHERE %s' % (tablename, update_str, condition)
+            direct_data.append("=".join([k,"'" + v + "'"]))
+        update_str = ",".join(direct_data)
+        #sql = 'UPDATE %s SET %s WHERE %s' % (table_name, update_str, cond)
         sql = "".join(['UPDATE ', table_name, ' SET ', ",".join(tmp), ' WHERE ', cond])
-        exec_var = tmp_value_arr + cond_data
-        exec_result = self._execute(sql, exec_var)
+        #exec_var = tmp_value_arr + cond_data
+        for row in cond_data:
+            tmp_value_arr.append(row)
+        print (tmp_value_arr)
+        print (sql)
+        exec_result = self._execute(sql, tmp_value_arr)
+        #exec_result = self._execute(sql)
         return exec_result
         
     def _fix_stmt_parm(self, cond_data):
@@ -88,7 +98,7 @@ class MysqlPkg:
     def _execute(self, sql, data = {}):
         try:
             rs = self.cursor.execute(sql, data)
-            self.cnx.commit()
+            #self.cnx.commit() #设置了autocommit就不用了
             return rs
         except Exception as e:
             print (e)
