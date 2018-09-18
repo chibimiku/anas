@@ -2,9 +2,9 @@ CREATE TABLE `fetch_list` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
 	`url` VARCHAR(255) NOT NULL,
 	`fetchset` VARCHAR(255) NOT NULL DEFAULT 'default',
-	`status` TINYINT(4) NOT NULL DEFAULT '',
+	`status` TINYINT(4) NOT NULL DEFAULT '0',
 	`local_path` VARCHAR(255) NOT NULL DEFAULT '',
-	`init_timestamp` TIMESTAMP NOT NULL DEFAULT '',
+	`init_timestamp` TIMESTAMP NULL,
 	`fetch_timestamp` INT(11) NOT NULL DEFAULT '0',
 	`remote_id` INT(11) NOT NULL DEFAULT '0',
 	`title` VARCHAR(255) NOT NULL DEFAULT '',
@@ -21,6 +21,8 @@ COLLATE='utf8_general_ci'
 ENGINE=MyISAM
 AUTO_INCREMENT=0
 ;
+
+
 
 CREATE TABLE `gallerys` (
 	`gid` INT(11) NOT NULL AUTO_INCREMENT,

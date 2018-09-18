@@ -1,3 +1,4 @@
+import asyncio
 #存放Puppeteer常见的组合操作
 
 #选取指定path下面所有的img
@@ -11,6 +12,19 @@ async def get_all_imgs(page, path):
     return rs_list
 
 #公用操作区
+
+#阻止加载图片
+async def _not_loading_images(request):
+    if(request.resourceType == "image"):
+        await request.abort()
+    else:
+        await request.continue_()
+    
+#直接PuppeteerCombo.set_no_image(page)
+#阻止加载图片
+async def set_no_image(page):
+    await page.setRequestInterception(True)
+    page.on('request', lambda request: asyncio.ensure_future(_not_loading_images(request)))
     
 #基础操作区
 async def get_elements_attr_by_selector(page, selector, attr):

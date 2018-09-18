@@ -22,8 +22,13 @@ async def main():
     #首次使用将会下载
     browser = await launch({"args": ["--no-sandbox"]})
     page = await browser.newPage()
-    await pc.disable_img(page)
-    await page.goto("https://www.zhihu.com/question/51147227/answer/124329481")
+    
+    #尝试阻止下图片
+    await pc.set_no_image(page)
+
+    print ("Set done")
+    #await page.goto("https://www.zhihu.com/question/51147227/answer/124329481")
+    await page.goto("https://www.baidu.com")
     print (await page.title())
     
     await page.screenshot({'path': 'example.png'})
