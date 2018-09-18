@@ -3,7 +3,7 @@
 #选取指定path下面所有的img
 async def get_all_imgs(page, path):
     rs_list = []
-    els = page.querySelectorAll(path + " img")
+    els = await page.querySelectorAll(path + " img")
     if(els is None):
         return rs_list
     for el in els:
@@ -11,13 +11,6 @@ async def get_all_imgs(page, path):
     return rs_list
 
 #公用操作区
-async def disable_img(page):
-    page.on(''' 'request', request => {
-        if (request.resourceType() === 'image')
-          request.abort();
-        else
-          request.continue();
-      }''');
     
 #基础操作区
 async def get_elements_attr_by_selector(page, selector, attr):

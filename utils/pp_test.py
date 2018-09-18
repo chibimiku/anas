@@ -25,7 +25,6 @@ async def main():
     #首次使用将会下载
     browser = await launch({"args": ["--no-sandbox"]})
     page = await browser.newPage()
-    await pc.disable_img(page)
     
     fetch_tbl_name = "fetch_list"
     
