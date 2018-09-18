@@ -86,7 +86,7 @@ async def main():
             print ("Download task done.")
             up_dict = {"status": 1, "fetch_timestamp": time.time(), "local_path": dl.get_full_save_path(), "author_name": author_name, "author_id": author_id}
             update_infos.append({"insert_dict": up_dict, "id": row["id"]})
-            #db.update(fetch_tbl_name, {"status": 1, "fetch_timestamp": time.time(), "local_path": dl.get_full_save_path(), "author_name": author_name, "author_id": author_id}, "id=%s", row["id"])
+            db.update(fetch_tbl_name, {"status": 1, "fetch_timestamp": time.time(), "local_path": dl.get_full_save_path(), "author_name": author_name, "author_id": author_id}, "id=%s", row["id"])
             #db.update(fetch_tbl_name, {"status": 1, "fetch_timestamp": time.time(), "local_path": dl.get_full_save_path(), "author_name": author_name, "author_id": author_id}, "id=" + str(row["id"]))
         except Exception as e:
             db.update(fetch_tbl_name, {"status": -1, "comment": e}, "id=%s", str(row["id"]))
