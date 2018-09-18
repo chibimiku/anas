@@ -34,6 +34,9 @@ async def main():
 
     #设置cookies
     cookies_path = '../data/cookies/'
+    
+    #infos
+    update_infos = []
 
     for row in fetch_list:
         url = row["url"]
@@ -81,7 +84,9 @@ async def main():
             for img in imgs:
                 dl.download_image(img)
             print ("Download task done.")
-            db.update(fetch_tbl_name, {"status": 1, "fetch_timestamp": time.time(), "local_path": dl.get_full_save_path(), "author_name": author_name, "author_id": author_id}, "id=%s", row["id"])
+            up_dict = {"status": 1, "fetch_timestamp": time.time(), "local_path": dl.get_full_save_path(), "author_name": author_name, "author_id": author_id}
+            update_infos.append({"insert_dict": up_dict, "id": row["id"]})
+            #db.update(fetch_tbl_name, {"status": 1, "fetch_timestamp": time.time(), "local_path": dl.get_full_save_path(), "author_name": author_name, "author_id": author_id}, "id=%s", row["id"])
             #db.update(fetch_tbl_name, {"status": 1, "fetch_timestamp": time.time(), "local_path": dl.get_full_save_path(), "author_name": author_name, "author_id": author_id}, "id=" + str(row["id"]))
         except Exception as e:
             db.update(fetch_tbl_name, {"status": -1, "comment": e}, "id=%s", str(row["id"]))
@@ -94,10 +99,16 @@ async def main():
     print ("Fetch task done")
     await browser.close()
     db.close()
-    return True
+    return update_infos
 
 #执行相对简单的从db获取url
 if __name__== '__main__':
     asyncio.get_event_loop().run_until_complete(main())
+    '''
+    fetch_tbl_name = "fetch_list"
+    db = MysqlPkg.mysqlpkg_fastinit("../conf/mysql.conf")
+    for row in update_infos:
+        db.update(fetch_tbl_name, row[""], "id=%s", row["id"])
+    '''
     print ("All task done.")
     
