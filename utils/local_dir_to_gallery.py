@@ -19,7 +19,9 @@ def get_gallery_images(db, gid):
     image_arr = []
     for row in i_info:
         image_arr.append("".join(["[img]", "".join(g_info["remote_dir"], row["filename"]), "[/img]"]))
+    return image_arr
 
+#从远程zip获取zip并解压到指定目录
 def indb_from_remote_zip(remote_zip, local_dir, remote_prefix, db, name = ""):
     #先下载远程文件
     dl = Downloader.Downloader("../conf/download.conf")
@@ -29,6 +31,14 @@ def indb_from_remote_zip(remote_zip, local_dir, remote_prefix, db, name = ""):
     if(len(name) == 0):
         name = filename
     os.remove(zip_path) #解压后处理掉原始zip
+    extrace_files = os.listdir(local_dir)
+    #如果只有一个文件夹的话将其挪到上一层来
+    if(len(extrace_files) == 1):
+        if(os.path.isdir(extrace_files[0])):
+            for i_file in os.listdir(extrace_files[0]):
+                shutil.move("/".join([local_dir, extrace_files[0], i_file]), "/".join([local_dir, i_file]))
+            rmdir(extrace_files[0])
+    return name
     
 #支持下载的zip文件并解压出来
 def my_unzip(path_to_zip_file, directory_to_extract_to):
