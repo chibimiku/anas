@@ -29,7 +29,7 @@ async def main():
     fetch_tbl_name = "fetch_list"
     
     #获取需要抓取的list
-    fetch_list = db.query("SELECT * FROM " + fetch_tbl_name + " WHERE status=0")
+    fetch_list = db.query("SELECT * FROM " + fetch_tbl_name + " WHERE status<1")
 
     #设置cookies
     cookies_path = '../data/cookies/'
@@ -55,7 +55,8 @@ async def main():
                 author_name = await pc.get_element_content_by_selector(page, ".weibo-top h3[class*='m-text-cut']")
                 author_id_tmp = await pc.get_element_attr_by_selector(page, ".weibo-top a[class*='m-img-box']", "href")
                 author_id = author_id_tmp.split("/")[-1]
-                imgs = await pc.get_elements_attr_by_selector(page, ".f-bg-img", "style.backgroundImage")
+                #imgs = await pc.get_elements_attr_by_selector(page, ".f-bg-img", "style.backgroundImage")
+                imgs = await pc.get_elements_attr_by_selector(page, ".weibo-media .f-bg-img", "src")
                 if(len(imgs) > 0):
                     for i in range(0, len(imgs)):
                         imgs[i] = imgs[i].replace("orj360", "large").replace('url("', "", )[:-2] #去掉
@@ -90,6 +91,7 @@ async def main():
         except Exception as e:
             db.update(fetch_tbl_name, {"status": -1, "comment": e}, "id=%s", str(row["id"]))
             traceback.print_exc()
+            await page.screenshot({"path": 'screenshot_ss.png', "fullPage": True});
             
         new_cookie = await page.cookies()
         #回写cookies
